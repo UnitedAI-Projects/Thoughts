@@ -70,12 +70,41 @@ This product captures conversations, so privacy is a core feature, not an add-on
 
 ---
 
-## Proposed Tech Stack
+## Tech Stack
 
-> Nothing here is final. Confirm as a team before building.
-
-| Layer | Proposed choice | Notes |
+| Layer | Choice | Notes |
 |---|---|---|
-| Extension | Manifest V3 (JavaScript/TypeScript) | Reads the supported AI site's page and sends it to the API |
-| Website | React or Next.js | Landing, login, dashboard, task detail |
-| Backend API | FastAPI (Python) or Node | One API shared by the
+| Extension | Manifest V3 (TypeScript) | Reads the supported AI site's page and sends it to the backend. Never holds any AI key |
+| Website + API | Next.js (TypeScript) on **Vercel** | One codebase and one deploy for the pages and the API routes |
+| Database | Postgres (for example Neon or Supabase, via the Vercel marketplace) | Accounts, conversations, tasks. Final choice TBD |
+| Auth | Provider-managed (for example Supabase Auth or Auth.js) | Avoid building login from scratch. Final choice TBD |
+| AI analysis | **Azure OpenAI**, called only from the backend | One shared club key, stored only in Vercel environment variables |
+
+### AI provider rules
+
+- **Only the backend talks to Azure.** The extension and website call our API, never Azure directly.
+- **One shared key.** It lives in the Vercel dashboard (and in the local `.env` of whoever needs real Azure calls in development). Teammates share it privately, never through the repo, issues, or AI chat prompts.
+- **Mock by default.** Real Azure calls are opt-in so one person's bug can't use up the shared quota.
+- **Protect the quota.** Cap conversation length, limit calls per minute, and cache results so reopening a task doesn't re-run analysis.
+- If the key is ever committed, treat it as compromised and have it regenerated. Deleting the commit does not undo the exposure.
+
+### Environment variables
+
+`.env.example` (fake values, safe to commit):
+
+```
+ANALYSIS_PROVIDER=mock          # mock | azure
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+AZURE_OPENAI_API_KEY=replace-me
+API_BASE_URL=http://localhost:3000
+```
+
+---
+
+## How It Works
+
+1. The user signs up and installs the extension (Onboarding).
+2. The extension is **paired** with the account, for example with a one-time code the user pastes into the extension. *(Proposed.)*
+3. With capture on, the extension sends conversation data to the backend.
+4. The backend returns immediately with a "processing" status, then analyzes the conversation and produces **tasks**, each with a confidence score, diagram data, and golden path steps. This keeps slow Azure calls from hitting
