@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thoughts: site design demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* ---------- Tokens ---------- */
+:root{
+  --paper:#F7F6F1; --card:#FFFFFF; --ink:#1D2033; --muted:#5A6077; --line:#E2E0D8;
+  --indigo:#4F46C8; --indigo-soft:#ECEAFB;
+  --teal:#1F7A66;   --teal-soft:#E3F2EE;
+  --gold:#D99A1E;   --gold-soft:#FBF1D9; --gold-ink:#7A5200;
+  --red:#B3261E; --amber:#8A5A00; --green:#1E6B45;
+  --zone-red:#F2CFCB; --zone-amber:#F6DFAE; --zone-green:#C9E4D4;
+  --radius:14px; --radius-sm:8px;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55}
+h1,h2,h3,h4,p{margin:0}
+h1,h2,h3,h4{font-weight:800;letter-spacing:-0.03em;line-height:1.1}
+a{color:var(--indigo);font-weight:600}
+a:hover{color:var(--ink)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--indigo);outline-offset:2px}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:18px;height:18px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---------- Buttons, chips, fields ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:var(--radius-sm);border:1px solid var(--ink);background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;text-decoration:none}
+.btn-primary{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.btn-primary:hover{background:#3F37AE;color:#fff}
+.btn-teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn-teal:hover{background:#186655;color:#fff}
+.btn-block{width:100%}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 12px;border-radius:99px;font-size:13px;font-weight:600;background:#EDEBE3;color:var(--ink)}
+.chip-pill{border:1px solid var(--line);background:var(--card);min-height:44px;padding:0 16px;font-size:14px;cursor:pointer}
+.chip-pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted);display:block}
+.dot-on{background:var(--green)}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600}
+.field input,.field select,.search input,.sort select{min-height:46px;padding:0 14px;border:1px solid #BDBAAE;border-radius:var(--radius-sm);background:#fff;font-weight:400}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.inline-hit{position:relative}
+.inline-hit::after{content:"";position:absolute;left:-6px;right:-6px;top:50%;height:44px;transform:translateY(-50%)}
+
+/* ---------- Demo chrome (not part of the product) ---------- */
+.demo-bar{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff}
+.demo-bar .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;min-height:56px}
+.demo-bar strong{font-weight:800;letter-spacing:-0.01em}
+.demo-bar nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.demo-bar a{color:#fff;text-decoration:none;font-weight:500;font-size:14px;min-height:44px;padding:0 12px;border-radius:6px;display:inline-flex;align-items:center}
+.demo-bar a:hover{background:#333852;color:#fff}
+.screen{padding:40px 0 28px;scroll-margin-top:64px}
+.screen-tag{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;margin-bottom:14px;color:var(--muted);font-size:14px}
+.screen-tag b{color:var(--ink);font-size:15px;flex:none;white-space:nowrap}
+.frame{background:var(--paper);border:1px solid #CFCCC0;border-radius:var(--radius);overflow:hidden}
+.frame-top{display:flex;gap:7px;align-items:center;padding:12px 16px;background:#EEECE4;border-bottom:1px solid #CFCCC0}
+.frame-top i{width:11px;height:11px;border-radius:50%;background:#C9C6B9;display:block}
+
+/* ---------- 01 Landing / Login ---------- */
+.site-nav{display:flex;align-items:center;gap:24px;padding:20px 32px}
+.logo{font-weight:800;font-size:22px;letter-spacing:-0.03em;display:flex;align-items:center;gap:10px;line-height:1}
+.logo-sm{font-size:18px}
+.logo-mark{width:30px;height:30px;border-radius:9px;background:var(--indigo);display:grid;place-items:center;color:#fff;flex:none}
+.logo-mark .ic{width:18px;height:18px}
+.logo-mark.mark-sm{width:26px;height:26px;border-radius:8px}
+.logo-mark.mark-teal{background:var(--teal)}
+.logo-mark.mark-gold{background:var(--gold-soft);color:var(--gold-ink);border:1px solid #E7CF98}
+.site-nav .links{margin-left:auto;display:flex;gap:8px 24px;align-items:center}
+.site-nav .links a:not(.btn){text-decoration:none;color:var(--ink);font-weight:500;min-height:44px;display:inline-flex;align-items:center;padding:0 4px}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:56px;padding:40px 32px 72px;align-items:center}
+.hero h1{font-size:clamp(2.4rem,5.2vw,4.1rem);line-height:1.05;letter-spacing:-0.035em;max-width:14ch}
+.hero .lead{font-size:1.15rem;color:var(--muted);max-width:34rem;margin:22px 0 30px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+.login{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:30px;display:flex;flex-direction:column;gap:16px}
+.login h2{font-size:1.5rem}
+.or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
+.or::before,.or::after{content:"";height:1px;background:var(--line);flex:1}
+.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:0 32px 56px}
+.feature{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:10px}
+.feature h3{font-size:1.1rem}
+.ico-box{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;flex:none}
+.ico-indigo{background:var(--indigo-soft);color:var(--indigo)}
+.ico-teal{background:var(--teal-soft);color:var(--teal)}
+.ico-gold{background:var(--gold-soft);color:var(--gold-ink)}
+
+/* ---------- 02 Onboarding ---------- */
+.onb{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;padding:48px 32px 56px;align-items:start}
+.onb h2{font-size:clamp(1.8rem,3.4vw,2.6rem);margin-bottom:10px}
+.steps{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.step-n{width:44px;height:44px;border-radius:50%;background:var(--indigo-soft);color:var(--indigo);display:grid;place-items:center;font-weight:800}
+.step.done .step-n{background:var(--green);color:#fff}
+.step h3{font-size:1.05rem;margin-bottom:4px}
+.step .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:flex-end}
+.step .row .field{flex:1 1 200px}
+.ext{background:var(--gold-soft);border:1px solid #E7CF98;border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:16px}
+.ext-note{font-size:14px;color:var(--gold-ink);font-weight:600}
+.ext-copy{font-size:14px;color:var(--gold-ink)}
+.popup{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;max-width:320px}
+.popup-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toggle{min-width:50px;min-height:44px;padding:7px 0;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.toggle-track{width:50px;height:30px;border-radius:99px;background:var(--green);position:relative;display:block}
+.toggle-track::after{content:"";position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;background:#fff}
+.legend{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- 03 Dashboard ---------- */
+.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:760px}
+.side{background:var(--card);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:22px}
+.side nav{display:flex;flex-direction:column;gap:4px}
+.nav-i{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:var(--radius-sm);text-decoration:none;color:var(--ink);font-weight:500;background:transparent;border:0;text-align:left;width:100%}
+.nav-i[aria-current="page"]{background:var(--teal-soft);color:var(--teal);font-weight:700}
+.nav-i.soon,.nav-i.soon:disabled{color:var(--muted);cursor:not-allowed;opacity:1}
+.nav-i .chip{margin-left:auto;min-height:22px;font-size:11px;padding:0 8px}
+.side-foot{margin-top:auto}
+.main{padding:32px 36px 40px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.main h2{font-size:2rem}
+.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.search{position:relative;flex:1 1 260px}
+.search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);width:20px;height:20px}
+.search input{width:100%;padding-left:44px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.sort{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--muted)}
+.sort select{color:var(--ink);font-weight:400}
+.tasks{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.task{display:grid;grid-template-columns:minmax(0,1fr) 190px 120px 28px;gap:20px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;text-decoration:none;color:var(--ink);font-weight:400}
+.task:hover{border-color:var(--teal);color:var(--ink)}
+.task > div{min-width:0}
+.task h3{font-size:1.02rem}
+.task .src{font-size:13px;color:var(--muted)}
+.mini{display:flex;flex-direction:column;gap:5px}
+.mini-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700}
+.mini-top span:first-child{white-space:nowrap}
+.mini-track{height:8px;background:#ECEAE2;border-radius:99px;overflow:hidden}
+.mini-fill{height:100%;border-radius:99px}
+.s-ok{color:var(--green)} .s-mid{color:var(--amber)} .s-low{color:var(--red)}
+.f-ok{background:var(--green)} .f-mid{background:#C98A00} .f-low{background:var(--red)}
+.st{font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;text-align:center;white-space:nowrap}
+.st-prog{background:var(--indigo-soft);color:var(--indigo)}
+.st-rev{background:var(--gold-soft);color:var(--gold-ink)}
+.st-done{background:var(--teal-soft);color:#17604F}
+.go{color:var(--muted)}
+.empty{border:2px dashed #C9C6B9;border-radius:var(--radius);padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;background:#FBFAF6}
+.empty .ico-box{width:56px;height:56px}
+.empty h3{font-size:1.2rem}
+.empty p{max-width:30rem}
+.variant-label{font-size:13px;color:var(--muted);margin-bottom:-8px}
+
+/* ---------- 04 Task detail ---------- */
+.detail{padding:32px 36px 48px;display:flex;flex-direction:column;gap:26px}
+.crumbs{font-size:14px;color:var(--muted);display:flex;gap:8px;align-items:center;min-height:44px}
+.crumbs a{text-decoration:none;min-height:44px;display:inline-flex;align-items:center;padding:0 2px}
+.detail-head h2{font-size:clamp(1.8rem,3.4vw,2.6rem);margin:6px 0 12px;max-width:22ch}
+.meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.sec-head{display:flex;align-items:center;gap:12px}
+.sec-head h3{font-size:1.15rem}
+.sec-head .ico-box{width:42px;height:42px;border-radius:11px}
+.gauge{width:100%;max-width:300px;margin:0 auto;display:block}
+.gauge text{font-family:var(--font)}
+.gauge-pct{font-size:44px;font-weight:800;fill:var(--green)}
+.gauge-scale{font-size:11px;fill:var(--muted)}
+.gauge-label{text-align:center;font-weight:800;font-size:1.15rem}
+.reasons{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.reasons li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px}
+.reasons .m{font-weight:800}
+.zones{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.zones span{display:inline-flex;gap:6px;align-items:center}
+.zones i{width:12px;height:12px;display:block;border-radius:3px}
+.diagram{width:100%;height:auto;display:block}
+.diagram text{font-family:var(--font)}
+.path-sec{grid-column:1 / -1}
+.path{list-style:none;margin:6px 0 0;padding:0;position:relative;display:flex;flex-direction:column;gap:6px}
+.path::before{content:"";position:absolute;left:19px;top:20px;bottom:20px;width:4px;background:var(--gold);border-radius:4px}
+.pstep{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:16px;align-items:center;padding:12px 16px 12px 0;min-height:64px}
+.pnode{width:42px;height:42px;border-radius:50%;background:#fff;border:4px solid var(--gold);display:grid;place-items:center;z-index:1;color:var(--gold-ink);font-weight:800;font-size:14px;margin-left:-1px}
+.pstep.done .pnode{background:var(--gold);color:#fff;border-color:var(--gold)}
+.pstep.now{background:var(--gold-soft);border-radius:var(--radius-sm)}
+.pstep.now .pnode{background:var(--ink);border-color:var(--ink);color:#fff}
+.pstep h4{font-size:1rem}
+.pstep.done h4{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.pstep .time{font-size:13px;color:var(--muted);font-weight:600;padding-right:6px;white-space:nowrap}
+
+.foot{padding:40px 0 64px;color:var(--muted);font-size:14px}
+
+/* ---------- Responsive ---------- */
+@media (max-width:980px){
+  .hero,.onb{grid-template-columns:1fr}
+  .features,.sections{grid-template-columns:1fr}
+  .app{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);gap:12px 16px}
+  .side nav{flex-direction:row;flex-wrap:wrap;align-items:center}
+  .nav-i{width:auto}
+  .side-foot{margin-top:0;margin-left:auto}
+  .task{grid-template-columns:minmax(0,1fr) minmax(150px,42%)}
+  .task .st,.task .go{display:none}
+}
+@media (max-width:560px){
+  .wrap{padding-left:18px;padding-right:18px}
+  .site-nav,.hero,.features,.onb{padding-left:18px;padding-right:18px}
+  .main,.detail{padding-left:18px;padding-right:18px}
+  .site-nav .links a:not(.btn){display:none}
+  .site-nav .links{gap:0}
+  .screen{scroll-margin-top:150px}
+  .side{padding:14px 12px}
+  .side .logo{order:1}
+  .side-foot{order:2}
+  .side nav{order:3;flex:1 1 100%;flex-wrap:nowrap}
+  .nav-i{padding:0 10px}
+  .task{grid-template-columns:minmax(0,1fr);gap:10px}
+  .pstep{grid-template-columns:44px minmax(0,1fr)}
+  .pstep .time{grid-column:2;padding-right:0}
+  .hero{gap:32px;padding-top:24px;padding-bottom:40px}
+}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/></symbol>
+  <symbol id="i-diagram" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></symbol>
+  <symbol id="i-path" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h4a3 3 0 0 0 0-6h-1a3 3 0 0 1 0-6h5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M12 12v4M10 14h4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.5 6.5a8 8 0 1 0 11 0"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13l3-8h12l3 8v6H3z"/><path d="M3 13h5l1 3h6l1-3h5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></symbol>
+</svg>
+
+<!-- Demo navigation: not part of the product -->
+<div class="demo-bar">
+  <div class="wrap">
+    <strong>Thoughts site design demo</strong>
+    <nav aria-label="Jump to a screen">
+      <a href="#landing">Landing and login</a>
+      <a href="#onboarding">Onboarding</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#task">Task detail</a>
+    </nav>
+  </div>
+</div>
+
+<main>
+
+<!-- ===================== 01 LANDING / LOGIN ===================== -->
+<section class="screen" id="landing" aria-labelledby="landing-title">
+  <div class="wrap">
+    <div class="screen-tag"><b>Screen 1</b><span>Landing and login. Product introduction and secure account access.</span></div>
+    <div class="frame">
+      <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
+
+      <nav class="site-nav" aria-label="Site">
+        <div class="logo"><span class="logo-mark"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg></span>Thoughts</div>
+        <div class="links">
+          <a href="#landing-features">How it works</a>
+          <a href="#login">Sign in</a>
+          <a class="btn btn-primary" href="#onboarding">Get started</a>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <div>
+          <h1 id="landing-title">Your chats already hold the plan.</h1>
+          <p class="lead">Thoughts turns your AI conversations into an organized task list, shows how sure it is about each task, and maps the steps to finish it.</p>
+          <div class="cta">
+            <a class="btn btn-primary" href="#onboarding">Get started free</a>
+            <a class="btn" href="#landing-features">See how it works</a>
+          </div>
+        </div>
+
+        <form class="login" id="login" action="#login" method="post" aria-labelledby="login-title">
+          <h2 id="login-title">Sign in</h2>
+          <label class="field">Email
+            <input type="email" placeholder="you@school.edu" autocomplete="email">
+          </label>
+          <label class="field">Password
+            <input type="password" placeholder="At least 8 characters" autocomplete="current-password">
+          </label>
+          <button class="btn btn-primary btn-block" type="button">Sign in</button>
+          <div class="or" role="separator">or</div>
+          <button class="btn btn-block" type="button">Continue with your school account</button>
+          <p class="small muted">New here? <a class="inline-hit" href="#onboarding">Create an account</a>. Your conversations stay private to your account.</p>
+        </form>
+      </div>
+
+      <div class="features" id="landing-features">
+        <article class="feature">
+          <div class="ico-box ico-indigo"><svg class="ic" aria-hidden="true"><use href="#i-gauge"/></svg></div>
+          <h3>See how sure it is</h3>
+          <p class="muted">Every task carries a confidence score, so you know what to trust and what to double-check.</p>
+        </article>
+        <article class="feature">
+          <div class="ico-box ico-teal"><svg class="ic" aria-hidden="true"><use href="#i-diagram"/></svg></div>
+          <h3>Connect the ideas</h3>
+          <p class="muted">A diagram shows how the concepts in a task relate to each other.</p>
+        </article>
+        <article class="feature">
+          <div class="ico-box ico-gold"><svg class="ic" aria-hidden="true"><use href="#i-path"/></svg></div>
+          <h3>Follow the golden path</h3>
+          <p class="muted">The recommended steps to finish, in order, with time estimates.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 02 ONBOARDING ===================== -->
+<section class="screen" id="onboarding" aria-labelledby="onb-title">
+  <div class="wrap">
+    <div class="screen-tag"><b>Screen 2</b><span>Onboarding. Install the extension and link it to your account.</span></div>
+    <div class="frame">
+      <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="onb">
+        <div>
+          <h2 id="onb-title">Set up Thoughts in three steps.</h2>
+          <p class="muted">The extension captures your conversations in the background. You can pause it any time.</p>
+
+          <ol class="steps">
+            <li class="step done">
+              <div class="step-n"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></div>
+              <div>
+                <h3>Install the extension</h3>
+                <p class="muted small">Added to your browser.</p>
+              </div>
+            </li>
+            <li class="step">
+              <div class="step-n">2</div>
+              <div>
+                <h3>Link it to your account</h3>
+                <p class="muted small">Enter the code shown in the extension.</p>
+                <div class="row">
+                  <label class="field">Link code
+                    <input type="text" placeholder="Enter 6-digit code" inputmode="numeric" autocomplete="one-time-code">
+                  </label>
+                  <button class="btn btn-primary" type="button">Link extension</button>
+                </div>
+              </div>
+            </li>
+            <li class="step">
+              <div class="step-n">3</div>
+              <div>
+                <h3>Turn capture on</h3>
+                <p class="muted small">Chat as usual. Tasks appear on your dashboard.</p>
+                <div class="row"><a class="btn btn-teal" href="#dashboard">Go to my dashboard</a></div>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <aside class="ext" aria-label="Browser extension preview">
+          <span class="ext-note">Outside the website: browser extension</span>
+          <div class="popup">
+            <div class="popup-head">
+              <div class="logo logo-sm"><span class="logo-mark mark-sm mark-gold"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg></span>Thoughts</div>
+              <button class="toggle" type="button" role="switch" aria-checked="true" aria-label="Capture conversations">
+                <span class="toggle-track" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="small"><b>Capture is on.</b> Sending conversations to your account.</p>
+            <div class="legend">
+              <span class="chip"><i class="dot dot-on" aria-hidden="true"></i>Capture on</span>
+              <span class="chip"><i class="dot" aria-hidden="true"></i>Capture off</span>
+            </div>
+            <button class="btn btn-block" type="button">Pause capture</button>
+          </div>
+          <p class="ext-copy">The extension sends conversation data to the website through an API.</p>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 03 DASHBOARD ===================== -->
+<section class="screen" id="dashboard" aria-labelledby="dash-title">
+  <div class="wrap">
+    <div class="screen-tag"><b>Screen 3</b><span>Dashboard. Organized task list with search, filter, sort, and an empty state.</span></div>
+    <div class="frame">
+      <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="app">
+
+        <aside class="side">
+          <div class="logo"><span class="logo-mark mark-teal"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg></span>Thoughts</div>
+          <nav aria-label="Main">
+            <a class="nav-i" href="#dashboard" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg>Dashboard</a>
+            <button class="nav-i soon" type="button" disabled><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg>Settings<span class="chip">Soon</span></button>
+          </nav>
+          <p class="side-foot"><span class="chip"><i class="dot dot-on" aria-hidden="true"></i>Capture on</span></p>
+        </aside>
+
+        <div class="main">
+          <div>
+            <h2 id="dash-title">Your tasks</h2>
+            <p class="muted">6 tasks from 4 conversations.</p>
+          </div>
+
+          <div class="tools">
+            <label class="search">
+              <span class="sr">Search tasks</span>
+              <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+              <input type="search" placeholder="Search tasks">
+            </label>
+            <div class="filters" role="group" aria-label="Filter tasks">
+              <button class="chip chip-pill" type="button" aria-pressed="true">All</button>
+              <button class="chip chip-pill" type="button" aria-pressed="false">Needs review</button>
+              <button class="chip chip-pill" type="button" aria-pressed="false">In progress</button>
+              <button class="chip chip-pill" type="button" aria-pressed="false">Done</button>
+            </div>
+            <label class="sort">Sort by
+              <select>
+                <option>Newest</option>
+                <option>Highest confidence</option>
+                <option>Lowest confidence</option>
+              </select>
+            </label>
+          </div>
+
+          <ul class="tasks">
+            <li><a class="task" href="#task">
+              <div><h3>Outline the Marketing 301 case study</h3><div class="src">From a chat on Oct 21</div></div>
+              <div class="mini"><div class="mini-top"><span class="s-ok">Likely solid</span><span>78%</span></div><div class="mini-track"><div class="mini-fill f-ok" style="width:78%"></div></div></div>
+              <span class="st st-prog">In progress</span>
+              <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a></li>
+            <li><a class="task" href="#task">
+              <div><h3>Confirm lab access with the club adviser</h3><div class="src">From a chat on Oct 21</div></div>
+              <div class="mini"><div class="mini-top"><span class="s-low">Weak support</span><span>37%</span></div><div class="mini-track"><div class="mini-fill f-low" style="width:37%"></div></div></div>
+              <span class="st st-rev">Needs review</span>
+              <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a></li>
+            <li><a class="task" href="#task">
+              <div><h3>Study plan for the CS 210 midterm</h3><div class="src">From a chat on Oct 18</div></div>
+              <div class="mini"><div class="mini-top"><span class="s-ok">Likely solid</span><span>84%</span></div><div class="mini-track"><div class="mini-fill f-ok" style="width:84%"></div></div></div>
+              <span class="st st-prog">In progress</span>
+              <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a></li>
+            <li><a class="task" href="#task">
+              <div><h3>Pick a topic for the research proposal</h3><div class="src">From a chat on Oct 18</div></div>
+              <div class="mini"><div class="mini-top"><span class="s-mid">Verify first</span><span>52%</span></div><div class="mini-track"><div class="mini-fill f-mid" style="width:52%"></div></div></div>
+              <span class="st st-rev">Needs review</span>
+              <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a></li>
+            <li><a class="task" href="#task">
+              <div><h3>Build a spring break budget</h3><div class="src">From a chat on Oct 19</div></div>
+              <div class="mini"><div class="mini-top"><span class="s-ok">Likely solid</span><span>91%</span></div><div class="mini-track"><div class="mini-fill f-ok" style="width:91%"></div></div></div>
+              <span class="st st-done">Done</span>
+              <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a></li>
+            <li><a class="task" href="#task">
+              <div><h3>Email the TA about office hours</h3><div class="src">From a chat on Oct 15</div></div>
+              <div class="mini"><div class="mini-top"><span class="s-ok">Likely solid</span><span>88%</span></div><div class="mini-track"><div class="mini-fill f-ok" style="width:88%"></div></div></div>
+              <span class="st st-done">Done</span>
+              <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a></li>
+          </ul>
+
+          <p class="variant-label">Empty state, shown before the first conversation is captured or when a search finds nothing.</p>
+          <div class="empty">
+            <div class="ico-box ico-teal"><svg class="ic" aria-hidden="true"><use href="#i-inbox"/></svg></div>
+            <h3>No tasks yet</h3>
+            <p class="muted">Turn capture on and chat as you normally do. Tasks from your conversations will show up here.</p>
+            <a class="btn btn-teal" href="#onboarding">Check capture settings</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 04 TASK DETAIL ===================== -->
+<section class="screen" id="task" aria-labelledby="task-title">
+  <div class="wrap">
+    <div class="screen-tag"><b>Screen 4</b><span>Task detail. Focused view of one task with a confidence score, a diagram, and the golden path.</span></div>
+    <div class="frame">
+      <div class="frame-top" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="detail">
+
+        <div class="detail-head">
+          <div class="crumbs"><a href="#dashboard">Dashboard</a><span aria-hidden="true">/</span><span>Task</span></div>
+          <h2 id="task-title">Outline the Marketing 301 case study</h2>
+          <div class="meta">
+            <span class="chip">From a chat on Oct 21</span>
+            <span class="st st-prog">In progress</span>
+            <a class="btn" href="#dashboard">Back to dashboard</a>
+          </div>
+        </div>
+
+        <div class="sections">
+
+          <section class="sec" aria-labelledby="sec-conf">
+            <div class="sec-head">
+              <div class="ico-box ico-indigo"><svg class="ic" aria-hidden="true"><use href="#i-gauge"/></svg></div>
+              <h3 id="sec-conf">Confidence score</h3>
+            </div>
+            <p class="small muted">How certain Thoughts is about this task.</p>
+            <svg class="gauge" viewBox="0 0 240 150" role="img" aria-label="Confidence 78 percent, likely solid">
+              <path d="M20 120 A100 100 0 0 1 86.1 25.9" fill="none" stroke="var(--zone-red)" stroke-width="18"/>
+              <path d="M86.1 25.9 A100 100 0 0 1 176.3 37.3" fill="none" stroke="var(--zone-amber)" stroke-width="18"/>
+              <path d="M176.3 37.3 A100 100 0 0 1 220 120" fill="none" stroke="var(--zone-green)" stroke-width="18"/>
+              <circle cx="197.1" cy="56.3" r="10" fill="var(--ink)" stroke="var(--card)" stroke-width="3"/>
+              <text class="gauge-pct" x="120" y="112" text-anchor="middle">78%</text>
+              <text class="gauge-scale" x="20" y="144" text-anchor="middle">0</text>
+              <text class="gauge-scale" x="220" y="144" text-anchor="middle">100</text>
+            </svg>
+            <div class="gauge-label s-ok">Likely solid</div>
+            <ul class="reasons">
+              <li><span class="m s-ok" aria-hidden="true">+</span><span>The conversation names a clear deadline.</span></li>
+              <li><span class="m s-ok" aria-hidden="true">+</span><span>The same steps came up in several messages.</span></li>
+              <li><span class="m s-low" aria-hidden="true">&minus;</span><span>No source was given for the market figures.</span></li>
+            </ul>
+            <div class="zones">
+              <span><i style="background:var(--zone-red)" aria-hidden="true"></i>Below 40: weak support</span>
+              <span><i style="background:var(--zone-amber)" aria-hidden="true"></i>40 to 69: verify first</span>
+              <span><i style="background:var(--zone-green)" aria-hidden="true"></i>70 and up: likely solid</span>
+            </div>
+          </section>
+
+          <section class="sec" aria-labelledby="sec-diagram">
+            <div class="sec-head">
+              <div class="ico-box ico-teal"><svg class="ic" aria-hidden="true"><use href="#i-diagram"/></svg></div>
+              <h3 id="sec-diagram">Diagram</h3>
+            </div>
+            <p class="small muted">How the concepts in this task relate.</p>
+            <svg class="diagram" viewBox="0 0 520 320" role="img" aria-label="Concept map. The case study starts with market analysis, compares competitors, ends with a recommendation, and needs sources.">
+              <g stroke="#9AA3C7" stroke-width="2" fill="none">
+                <line x1="260" y1="160" x2="105" y2="55"/>
+                <line x1="260" y1="160" x2="415" y2="55"/>
+                <line x1="260" y1="160" x2="105" y2="265"/>
+                <line x1="260" y1="160" x2="415" y2="265"/>
+              </g>
+              <g class="edge-label" font-size="12" fill="var(--muted)" text-anchor="middle" paint-order="stroke" stroke="var(--card)" stroke-width="5">
+                <text x="182" y="100">starts with</text>
+                <text x="338" y="100">compares</text>
+                <text x="182" y="220">ends with</text>
+                <text x="338" y="220">needs</text>
+              </g>
+              <g font-size="14" font-weight="700" text-anchor="middle">
+                <rect x="190" y="136" width="140" height="48" rx="10" fill="var(--ink)"/>
+                <text x="260" y="165" fill="#fff">Case study</text>
+                <rect x="35" y="31" width="140" height="48" rx="10" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+                <text x="105" y="60" fill="#17604F">Market analysis</text>
+                <rect x="345" y="31" width="140" height="48" rx="10" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+                <text x="415" y="60" fill="#17604F">Competitors</text>
+                <rect x="35" y="241" width="140" height="48" rx="10" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+                <text x="105" y="270" fill="#17604F">Recommendation</text>
+                <rect x="345" y="241" width="140" height="48" rx="10" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+                <text x="415" y="270" fill="#17604F">Sources</text>
+              </g>
+            </svg>
+          </section>
+
+          <section class="sec path-sec" aria-labelledby="sec-path">
+            <div class="sec-head">
+              <div class="ico-box ico-gold"><svg class="ic" aria-hidden="true"><use href="#i-path"/></svg></div>
+              <h3 id="sec-path">Golden path</h3>
+            </div>
+            <p class="small muted">The recommended steps to completion. About 2 hours 25 minutes in total.</p>
+            <ol class="path">
+              <li class="pstep done"><span class="pnode"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg></span><h4><span class="sr">Done. </span>Re-read the case prompt</h4><span class="time">10 min</span></li>
+              <li class="pstep now" aria-current="step"><span class="pnode">2</span><div><h4>Gather three market figures, with sources</h4><span class="small muted">Up next. This also raises your confidence score.</span></div><span class="time">40 min</span></li>
+              <li class="pstep"><span class="pnode">3</span><h4>Compare two competitors</h4><span class="time">30 min</span></li>
+              <li class="pstep"><span class="pnode">4</span><h4>Draft the recommendation</h4><span class="time">45 min</span></li>
+              <li class="pstep"><span class="pnode">5</span><h4>Proofread and submit</h4><span class="time">20 min</span></li>
+            </ol>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap foot">
+  Demo only. Nothing on this page is connected to real data. Settings is marked "Soon" because it is a future consideration.
+</footer>
+
+</body>
+</html>
